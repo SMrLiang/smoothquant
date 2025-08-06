@@ -44,7 +44,7 @@ def smooth_ln_fcs(ln, fcs, act_scales, alpha=0.5):
     for fc in fcs:
         fc.weight.mul_(scales.view(1, -1))
 
-
+# llama架构使用的RMSNorm没有bias，而LayerNorm右bias
 @torch.no_grad()
 def smooth_ln_fcs_llama_like(ln, fcs, act_scales, alpha=0.5):
     if not isinstance(fcs, list):
@@ -65,7 +65,7 @@ def smooth_ln_fcs_llama_like(ln, fcs, act_scales, alpha=0.5):
         .to(device)
         .to(dtype)
     )
-
+    # 只对norm -> linear做smooth
     ln.weight.div_(scales)
     for fc in fcs:
         fc.weight.mul_(scales.view(1, -1))
