@@ -16,8 +16,10 @@ def get_act_scales(model, tokenizer, dataset_path, num_samples=512, seq_len=512)
     act_scales = {}
 
     def stat_tensor(name, tensor):
+        # in_channels
         hidden_dim = tensor.shape[-1]
         tensor = tensor.view(-1, hidden_dim).abs().detach()
+        # [*, inchannels] -> inchannels
         comming_max = torch.max(tensor, dim=0)[0].float().cpu()
         if name in act_scales:
             act_scales[name] = torch.max(act_scales[name], comming_max)
@@ -32,6 +34,8 @@ def get_act_scales(model, tokenizer, dataset_path, num_samples=512, seq_len=512)
     hooks = []
     for name, m in model.named_modules():
         if isinstance(m, nn.Linear):
+            # 默认对stat_input_hook传参
+            # foward hook(module, input, output)
             hooks.append(
                 m.register_forward_hook(functools.partial(stat_input_hook, name=name))
             )
